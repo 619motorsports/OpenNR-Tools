@@ -65,15 +65,15 @@ The row pitch uses four-byte alignment.
 
 Known pixel-format codes are listed below:
 
-| Code | Bytes per pixel | Format family |
+| Code | Bytes per pixel | Layout |
 | ---: | ---: | --- |
-| `0x03` | 2 | 16-bit color |
-| `0x05` | 2 | 16-bit color |
-| `0x06` | 3 | 24-bit color |
-| `0x07` | 4 | 32-bit color |
+| `0x03` | 2 | RGB565 |
+| `0x05` | 2 | ARGB4444 |
+| `0x06` | 3 | RGB888 byte order |
+| `0x07` | 4 | BGRA8888 byte order |
 
-The 16-bit channel layouts remain unspecified.
-Consumers can retain the code and the decoded bytes without conversion.
+Rows can contain padding after the final pixel.
+Use `pitch`, not `width * bytes_per_pixel`, to locate the next row.
 
 ## Decode an image
 

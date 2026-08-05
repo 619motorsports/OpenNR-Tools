@@ -41,56 +41,25 @@ Most descriptor bodies start with this common header:
 
 Class-specific fields start after the optional name.
 
-## Common class groups
+## Descriptor bodies
 
-Scene classes include `GroupDescriptor`, `LodSwitchDescriptor`, and `TransformDescriptor`.
-Geometry classes include `ShapeDescriptor`, `GeometryDescriptor`, and vertex-list descriptors.
+The stream supports 43 descriptor classes.
+Each class has a defined body after the common descriptor header.
 
-Primitive classes include `TriListDescriptor`, `TriStripDescriptor`, and `TriFanDescriptor`.
-Material classes include `AppearanceDescriptor` and `TextureDescriptor`.
+Read the [descriptor body reference](3do-ptf-descriptors.md) for every class layout.
+That reference lists fields in wire order and includes all version gates.
 
-PTF streams add track, segment, section, detail, and track-side-object descriptors.
+## Sized arrays
 
-## Selected class layouts
+Many descriptor arrays start with a `u32` allocation size.
+This value is the array size in bytes.
 
-### TextureDescriptor
+A zero allocation size means that the array is absent.
+Object arrays store four bytes per object handle.
+`f64` arrays store eight bytes per item.
 
-After the common header, this class stores a version and a sized texture name.
-Version 2 also stores one load-flags byte.
-
-### GeometryDescriptor
-
-After the common header, this class stores its version and two object references.
-The references identify a vertex list and the first primitive.
-
-### PlainVertexListDescriptor
-
-The body contains the vertex count and separate arrays for each coordinate.
-Each `f64` array starts with its byte size.
-
-Position arrays are followed by a reserved array and three normal arrays.
-An attribute version and 24 sized attribute arrays follow the normals.
-
-Attribute arrays zero and one commonly contain texture coordinates.
-An absent attribute has a zero byte size.
-
-### Primitive descriptors
-
-All three primitive classes use the same serialized layout.
-The body stores a next-primitive object, a version, and a sized `u32` index array.
-
-### AppearanceDescriptor
-
-The body stores six texture objects.
-Version 2 adds a seventh texture object.
-
-Three `f64[3]` color groups follow the texture objects.
-Shininess, reflectivity, opacity, and one `f32` environment index follow the colors.
-
-### TrackDescriptor
-
-This class is the root of a PTF stream.
-Its body stores a version, a segment count, and segment objects.
+Readers must compare each allocation size with its count and element size.
+Some old versions store allocation data that has no known field meaning.
 
 ## Inspect a stream
 

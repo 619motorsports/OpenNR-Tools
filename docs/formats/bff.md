@@ -76,6 +76,11 @@ The adjacent `DATA` body contains one 12-byte atlas record per glyph.
 The atlas is a vertical strip.
 Each glyph starts at X position zero and its recorded Y position.
 
+The high 16 bits of the packed value contain an integer pen advance.
+The low 16 bits are reserved.
+
+The `f32` advance in `PFGD` is the more precise value.
+
 ## BMAP body
 
 `BMAP` contains a 14-byte `BMHD` body and one compressed `DATA` body.
@@ -92,6 +97,8 @@ The `DATA` body uses PKWARE DCL compression.
 Decoded pixels are row-major, eight-bit grayscale alpha values.
 
 The decoded size is `atlas_width * atlas_height` bytes.
+Known files use the high nibble for 16 alpha levels.
+The low nibble is zero.
 
 ## Inspect and render
 

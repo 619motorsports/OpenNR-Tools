@@ -31,6 +31,16 @@ Unused fields are normally zero.
 | `0x10c` | 4 | `i32` | Width |
 | `0x110` | 4 | `i32` | Height |
 | `0x114` | 4 | `u32` | Group identifier |
+| `0x118` | 4 | `u32` | Animation mode |
+| `0x11c` | 4 | `u32` | Animation item count |
+| `0x120` | 4 | `u32` | Animation flag |
+| `0x124` | 4 | `u32` | Animation threshold |
+| `0x128` | 4 | `u32` | Animation parameter |
+| `0x13c` | 4 | `u32` | Frame count |
+| `0x140` | 4 | `f32` | Frame duration |
+| `0x150` | 16 | `i32[4]` | First animation position |
+| `0x160` | 16 | `i32[4]` | Second animation position |
+| `0x170` | 16 | bytes | Preserved animation values |
 | `0x180` | 1 | `u8` | Image-animation flag |
 | `0x181` | 1 | `u8` | Image-stretch flag |
 | `0x182` | 32 | ASCII | First sound path |
@@ -39,6 +49,7 @@ Unused fields are normally zero.
 | `0x1c8` | 4 | `u32` | Second sound volume |
 | `0x2f5` | 4 | `u32` | Alternate fill color, `AARRGGBB` |
 | `0x2f9` | 4 | `u32` | Fill color, `AARRGGBB` |
+| `0x2fd` | 8 | bytes | Reserved |
 | `0x305` | 17 | ASCII | Primary font name |
 | `0x316` | 17 | ASCII | Secondary font name |
 | `0x327` | 4 | `u32` | Caption resource identifier |
@@ -51,12 +62,35 @@ Unused fields are normally zero.
 | `0x43d` | 4 | `u32` | Default parameter |
 | `0x441` | 4 | `u32` | Axis or mode parameter |
 | `0x445` | 4 | `u32` | Auxiliary parameter |
+| `0x449` | 8 | ASCII | First extra string |
+| `0x451` | 8 | ASCII | Start of second extra string |
 | `0x459` | 4 | `u32` | Item value |
 | `0x45d` | 2 | `i16` | Parent group identifier |
 | `0x45f` | 2 | `i16` | Own group identifier |
 | `0x461` | 2 | `i16` | Parent record index |
 | `0x463` | 2 | `i16` | Anchor code |
+| `0x465` | 8 | bytes | Reserved |
 | `0x46d` | 4 | `u32` | Runtime slot, zero on disk |
+
+The second extra string occupies 28 bytes from `0x451`.
+Its storage overlaps later typed fields in this tagged union.
+
+Bytes from `0x020` through `0x0ff` are reserved.
+Bytes from `0x300` through `0x304` are also reserved.
+
+## Animation block
+
+Static widgets normally set the animation block to zero.
+Animated image records use the frame count, duration, and two position records.
+
+Each position record has four signed coordinates.
+Interpret them as start X, start Y, end X, and end Y.
+
+The 16 bytes at `0x170` can repeat the frame-duration bit pattern.
+Readers must retain these bytes without assigning additional coordinates.
+
+The animation fields at `0x118` through `0x128` are a separate driver block.
+Their values control list or credit-sequence animation data.
 
 Nine 33-byte style slots start at `0x1cc`.
 Each slot contains a color string, an asset path, or zeros.
@@ -83,28 +117,98 @@ Codes `101`, `102`, and `103` select top-right, bottom-left, and bottom-right.
 An anchor code of `-1` means no anchor.
 A parent index of `-1` selects the outer viewport.
 
-## Common widget types
+## Widget types and field use
 
-| Code | Type |
-| ---: | --- |
-| 0 | Button |
-| 1 | Navigation button |
-| 2 | Radio, checkbox, or tab item |
-| 4 | Single-line text input |
-| 5 | Text label |
-| 6 | Filled rectangle |
-| 8 | Wrapped text |
-| 9 | Image |
-| 12 | Slider track |
-| 13 | Spinner button |
-| 14 | Slider |
-| 15 | Scrollbar |
-| 16 | List box |
-| 17 | Drop-down list |
-| 18 | Item group |
-| 19 | Table |
-| 22 | Layout group |
-| 26 | Multiline text input |
+| Code | Type | Important record fields |
+| ---: | --- | --- |
+| 0 | Button | Style slots, sounds, `param_aux`, linkage |
+| 1 | Navigation button | Secondary font, resource identifiers, sounds, linkage |
+| 2 | Radio, checkbox, or tab item | Primary font, style slots, art base, `item_value`, linkage |
+| 3 | Text radio or tab item | Fonts, styles, resource identifiers, parameter range |
+| 4 | Single-line text input | Primary font, alignment, parameter range, linkage |
+| 5 | Text label | Primary font, alignment, resource identifier |
+| 6 | Filled rectangle | `fill_argb`, geometry, linkage |
+| 8 | Wrapped text | Primary font, alignment, `param_default` line spacing |
+| 9 | Image | Resource path, image flags, animation block |
+| 11 | Graphic helper | Geometry, resource fields, linkage |
+| 12 | Slider track | Style slots, range values, `param_axis` |
+| 13 | Spinner button | Style slots, step values, `param_axis` |
+| 14 | Slider | Range values, axis, style slots, linkage |
+| 15 | Scrollbar | Group linkage and type 12 or 13 child records |
+| 16 | List box | Primary font, fill colors, `param_axis`, linkage |
+| 17 | Drop-down list | Style slots and a type 16 child record |
+| 18 | Item group | `own_group_id` and type 0, 2, or 3 children |
+| 19 | Table | Column records, font, fill colors, table parameters |
+| 21 | Tiled image | Resource path, repeat count, channel-mode parameter |
+| 22 | Layout group | `own_group_id` and consecutive children |
+| 23 | Text-input variant | Same core fields as type 4 |
+| 25 | Image alias | Same fields as type 9 |
+| 26 | Multiline text input | Font, capacity, line spacing, alignment |
+
+Codes 7, 10, 20, and 24 are invalid.
+
+### Value parameters
+
+The five `u32` values at `0x431` through `0x445` form a shared parameter block.
+Their meaning depends on the widget type.
+
+| Field | Common meanings |
+| --- | --- |
+| `alignment` | `0` left, `1` right, `2` center |
+| `param_min` | Minimum value, text capacity, or image repeat count |
+| `param_max` | Maximum value, row cap, or image channel mode |
+| `param_default` | Default value, step, or extra line spacing |
+| `param_axis` | Axis, direction, or list mode |
+| `param_aux` | Button state option or table selection mode |
+
+Type 19 uses `param_aux=1` for row selection.
+It uses `param_aux=2` for cell selection.
+
+### Container records
+
+Types 15, 18, and 22 can own consecutive child records.
+The container stores a nonzero `own_group_id`.
+
+A child belongs to that container when its `parent_group_id` has the same value.
+Children must remain consecutive in file order.
+
+Type 15 uses type 12 children for its track and thumb.
+It uses type 13 children for its arrow buttons.
+
+Type 17 normally owns one type 16 list record.
+
+### Text records
+
+Types 4, 5, 8, 16, 19, and 26 use the primary font slot.
+Type 1 normally uses the secondary font slot.
+
+Type 26 uses `param_min` as its byte capacity.
+A zero capacity selects a default of `0x400` bytes.
+
+Types 8 and 26 use `param_default` as extra line spacing.
+The alignment value applies to each displayed line.
+
+### Image records
+
+Types 9 and 25 use the resource path at `0x32f`.
+The byte at `0x180` enables authored animation data.
+
+The byte at `0x181` selects stretched output.
+When this byte is zero, the image keeps its natural dimensions.
+
+Type 21 repeats its image in both axes.
+`param_min` stores the repeat count when a resource path is present.
+
+## Style slots
+
+The nine style slots occupy offsets `0x1cc` through `0x2f4`.
+Their starts are `0x1cc + index * 33`.
+
+Each slot stores zero bytes, an asset name, or a `0xRRGGBBAA` color string.
+The widget type defines the state represented by each slot.
+
+Binary fill colors use `AARRGGBB` order instead.
+Do not swap the byte order between string colors and binary colors.
 
 ## Inspect a layout
 

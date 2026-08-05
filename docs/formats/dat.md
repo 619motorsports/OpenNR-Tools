@@ -31,6 +31,10 @@ Each table entry has a variable size:
 
 The total entry size is `16 + name_length` bytes.
 Bit `0x0200` marks a compressed entry.
+Known valid entries also contain the low flag mask `0x0005`.
+
+Readers must not treat other flag bits as compression indicators.
+Writers must retain unknown bits when they update an entry.
 
 Names are relative paths and can contain backslashes.
 A safe extractor must reject absolute paths and parent-directory components.
@@ -56,6 +60,19 @@ The remaining stream uses least-significant-bit-first codes.
 A zero flag introduces a literal byte.
 A one flag introduces a length and distance pair.
 A decoded length of `519` ends the stream.
+
+The length code uses a 16-symbol Huffman table.
+Its symbol selects a base length and a count of extra bits.
+
+The distance code uses a 64-symbol Huffman table.
+A length of two uses two low distance bits.
+Other lengths use the stream's extra-distance-bit value.
+
+Calculate the distance as `(symbol << low_bit_count) | low_value`, then add one.
+Copy the decoded length from that distance behind the output cursor.
+
+The dictionary size is `64 << extra_distance_bits` bytes.
+Therefore, values 4, 5, and 6 select 1, 2, and 4 KiB dictionaries.
 
 ## Inspect and extract
 

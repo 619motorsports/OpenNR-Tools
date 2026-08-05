@@ -67,10 +67,12 @@ The remaining known fields are listed below:
 | `0x0b8` | `i32` | Unknown flag |
 | `0x0bc` | `f32` | Steering ratio |
 | `0x0c0` | `f32` | Fuel mass in kilograms |
+| `0x0c4` | 4 bytes | Reserved setup slot |
 | `0x0c8` | `i32` | Gear count |
 | `0x0cc` | `i32` | Reverse-gear index |
 | `0x0d0` | `i32[4]` | Forward-gear indices |
 | `0x0e0` | `i32` | Final-drive index |
+| `0x0e4` | 4 bytes | Reserved setup slot |
 | `0x0e8` | `f32` | Grille-tape fraction |
 | `0x0ec` | `f32` | Unknown mirror value |
 | `0x0f0` | `f32` | Rear-spoiler angle minus 45 degrees |
@@ -83,6 +85,9 @@ The remaining known fields are listed below:
 | `0x10c` | `f32` | Right-front caster |
 
 The right-front ride-height target is not stored in version 13.
+
+Version 13 stores four forward-gear indices at `0x0d0` through `0x0dc`.
+Fifth-gear and sixth-gear indices are not part of this body.
 
 ## TGTS body
 

@@ -31,7 +31,8 @@ It puts the format references in `package/docs`.
 ## Automated builds and releases
 
 GitHub Actions builds Windows and Linux packages for pull requests and updates to `main`.
-Push a tag that starts with `v` to publish a GitHub release.
+Push a version tag to publish a GitHub release.
+Tags can use `0.1.0` or `v0.1.0` form.
 
 ```text
 git tag v0.1.0
@@ -39,6 +40,12 @@ git push origin v0.1.0
 ```
 
 The release contains a ZIP package for Windows and a compressed TAR package for Linux.
+
+To publish an existing tag, run the `Build and release` workflow manually.
+Set `release_tag` to the complete tag, such as `0.1.0`.
+
+The manual workflow gets source files from that tag before it builds the packages.
+An empty `release_tag` builds packages without publishing a release.
 
 ## Licenses
 
