@@ -1,4 +1,4 @@
-# OpenNR format tools
+# Open NR2003 format tools
 
 This repository contains standalone tools for Papyrus file formats.
 The build does not read files from another source checkout.
