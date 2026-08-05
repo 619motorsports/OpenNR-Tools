@@ -1,0 +1,13 @@
+/build*/
+/out/
+/package/
+/dist/
+/.vs/
+/.vscode/
+*.dll
+*.exe
+*.lib
+*.obj
+*.pdb
+*.pyc
+__pycache__/
