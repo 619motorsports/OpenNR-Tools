@@ -342,7 +342,7 @@ void SegmentDescriptor::read_body(Archive& ar) {
 void TextureDescriptor::read_body(Archive& ar) {
     magic = ar.read_u32();
     texture_name = ar.read_lp_string();
-    flag = ar.read_u8();
+    if (magic >= 2) flag = ar.read_u8();
     body_complete = true;
 }
 
@@ -513,12 +513,7 @@ void AppearanceDescriptor::read_body(Archive& ar) {
     magic = ar.read_u32();
     // 6 unconditional texture slots @ struct offsets +0xc..+0x20.
     for (int i = 0; i < 6; ++i) texture_slots[i] = ar.read_object();
-    // 7th slot @ +0x24 is conditional on the per-class version
-    // (`stream_version == 0 && magic < 2`).  Magic-2 Appearances always
-    // emit slot 6; magic-1 (legacy) Appearances omit it.  Both versions
-    // appear in shipped tracks — TrackDetail children typically use
-    // magic 2, while F_Section.w_section Appearances commonly use
-    // magic 1.
+    // Version-2 appearances store a seventh texture slot.
     if (magic >= 2) {
         texture_slots[6] = ar.read_object();
     }

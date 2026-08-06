@@ -44,6 +44,7 @@ add_library(opennr_formats STATIC
     src/fs/mip_texture.cpp
     src/fs/tga_image.cpp
     src/render/image_loader.cpp
+    src/viewer/track_view.cpp
     third_party/pklib/src/PKWareLUT/PKWareLUTs.c
     third_party/pklib/src/implode/implode.c)
 set_source_files_properties(
@@ -79,6 +80,18 @@ opennr_add_format_tool(opennr_rpy_tool tools/cpp/rpy_tool.cpp)
 opennr_add_format_tool(opennr_bff_inspect tools/cpp/bff_inspect.cpp)
 opennr_add_format_tool(opennr_bff_render_text tools/cpp/bff_render_text.cpp)
 opennr_add_format_tool(opennr_stp_dump tools/cpp/stp_dump.cpp)
+
+if(WIN32)
+    add_executable(opennr_track_viewer WIN32 tools/cpp/track_viewer.cpp)
+    target_link_libraries(opennr_track_viewer PRIVATE
+        opennr_formats comdlg32 gdi32 ole32 shell32 user32)
+else()
+    add_executable(opennr_track_viewer tools/cpp/track_viewer.cpp)
+    target_link_libraries(opennr_track_viewer PRIVATE opennr_formats)
+endif()
+opennr_formats_use_runtime(opennr_track_viewer)
+set_property(GLOBAL APPEND PROPERTY OPENNR_FORMAT_TOOL_TARGETS
+    opennr_track_viewer)
 
 get_property(OPENNR_FORMAT_TOOL_TARGETS GLOBAL
     PROPERTY OPENNR_FORMAT_TOOL_TARGETS)

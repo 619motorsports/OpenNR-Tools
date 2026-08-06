@@ -74,3 +74,14 @@ Inspect an entry without extracting its DAT archive:
 ```text
 opennr_object_tool archive.dat entry-name --tree
 ```
+
+## View a PTF track
+
+Open a track folder or an extracted PTF file with the track viewer:
+
+```text
+opennr_track_viewer track-folder
+opennr_track_viewer track.ptf
+```
+
+Read the [track viewer guide](../track-viewer.md) for the view modes and controls.

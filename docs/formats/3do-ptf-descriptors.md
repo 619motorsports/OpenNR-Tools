@@ -377,7 +377,7 @@ Each object has one sized `f64[max_vertex_count]` array in each family.
 | --- | --- | --- |
 | `u32` | `magic` | Texture version |
 | `lp_string` | `texture_name` | Texture resource name |
-| `u8` | `flags` | Texture control byte |
+| `u8` | `flags` | Texture control byte, present when `magic >= 2` |
 
 ### AppearanceDescriptor
 

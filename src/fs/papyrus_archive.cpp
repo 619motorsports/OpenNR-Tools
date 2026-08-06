@@ -57,11 +57,11 @@ std::string Archive::read_lp_string() {
     auto len_with_nul = reader_.read_u32_le();
     if (len_with_nul == 0) return {};
     auto bytes = reader_.read_bytes(len_with_nul);
-    // Drop trailing NUL but tolerate a stray non-NUL last byte (we've
-    // seen this once or twice in shipped files; keeping permissive
-    // matches the runtime behaviour of strncpy-style consumers).
+    // Drop all trailing NUL bytes. Some authoring tools include more than
+    // one terminator in the stored length. The runtime treats the first NUL
+    // as the end of the resource name.
     std::size_t n = len_with_nul;
-    if (bytes[n - 1] == 0) --n;
+    while (n > 0 && bytes[n - 1] == 0) --n;
     return std::string(reinterpret_cast<const char*>(bytes.data()), n);
 }
 
